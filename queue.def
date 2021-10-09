@@ -1,0 +1,87 @@
+#include <stdlib.h>
+#include <memory.h>
+
+#include "err.h"
+#include "utils.h"
+
+#define QUEUE_STARTING_SIZE 2
+
+void CONCAT(QUEUE_PREFIX_, _init)(QUEUE_TYPE_ *q, size_t max_size) {
+    int err;
+
+    mutex_init(&q->lock);
+    cond_init(&q->wait);
+    q->max_size = max_size;
+    q->start = 0;
+    q->end = 0;
+    q->size = QUEUE_STARTING_SIZE;
+    q->elements = 0;
+    q->waiting = 0;
+    malloc_and_check(q->array, QUEUE_STARTING_SIZE * sizeof(TYPE_));
+}
+
+void CONCAT(QUEUE_PREFIX_, _destroy)(QUEUE_TYPE_ *q) {
+    int err;
+
+    mutex_destroy(&q->lock);
+    cond_destroy(&q->wait);
+    free(q->array);
+}
+
+bool CONCAT(QUEUE_PREFIX_, _is_empty)(QUEUE_TYPE_ *q) {
+    return q->elements == 0;
+}
+
+TYPE_ CONCAT(QUEUE_PREFIX_, _pop)(QUEUE_TYPE_ *q) {
+    int err;
+
+    q->waiting++;
+
+    while (CONCAT(QUEUE_PREFIX_, _is_empty)(q)) {
+        cond_wait(&q->wait, &q->lock);
+    }
+
+    q->waiting--;
+
+    q->elements--;
+    TYPE_ value = q->array[q->start];
+    q->start = (q->start + 1) % q->size;
+
+    return value;
+}
+
+int CONCAT(QUEUE_PREFIX_, _push)(QUEUE_TYPE_ *q, TYPE_ value) {
+    int err;
+
+    if (q->elements == q->size) {
+        if (q->size * 2 <= q->max_size || q->max_size == 0) {
+            q->size *= 2;
+        }
+        else {
+            return -1;
+        }
+
+        realloc_and_check(q->array, q->size * sizeof(TYPE_));
+
+        memcpy(q->array + q->elements, q->array, q->end * sizeof(TYPE_));
+        q->end = q->start + q->elements;
+    }
+
+    q->elements++;
+    q->array[q->end] = value;
+    q->end = (q->end + 1) % q->size;
+
+    if (q->waiting > 0) {
+        cond_signal(&q->wait);
+    }
+
+    return 0;
+}
+
+void CONCAT(QUEUE_PREFIX_, _godie)(QUEUE_TYPE_ *q) {
+    int err;
+
+    q->elements = q->size + 1;
+
+    cond_broadcast(&q->wait);
+}

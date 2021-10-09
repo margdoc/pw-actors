@@ -1,0 +1,54 @@
+/*
+ * Implementacja stutkur szablonowych w C.
+ * https://stackoverflow.com/a/7186396
+ */
+
+#define CONCAT_(a, b) a##b
+#define CONCAT(a, b) CONCAT_(a, b)
+
+#include <pthread.h>
+#include <stdbool.h>
+
+#define QUEUE_PREFIX_ CONCAT(queue_, SUFIX_)
+#define QUEUE_TYPE_ CONCAT(QUEUE_PREFIX_, _t)
+
+/*
+ * Struktura współbieżnej kolejki zaimplentowanej na poszerzającym się buforze cyklicznym.
+ */
+typedef struct QUEUE_PREFIX_ {
+    size_t elements, size, start, end, max_size, waiting;
+    TYPE_ *array;
+    pthread_mutex_t lock;
+    pthread_cond_t wait;
+} QUEUE_TYPE_;
+
+/*
+ * Funkcja inicjuje kolejki.
+ */
+void CONCAT(QUEUE_PREFIX_, _init)(QUEUE_TYPE_ *q, size_t max_size);
+
+/*
+ * Funkcja niszczy kolejki.
+ */
+void CONCAT(QUEUE_PREFIX_, _destroy)(QUEUE_TYPE_ *q);
+
+/*
+ * Funkcja sprawdza czy kolejka jest pusta.
+ */
+bool CONCAT(QUEUE_PREFIX_, _is_empty)(QUEUE_TYPE_ *q);
+
+/*
+ * Funkcja zdejmuje i zwraca pierwszy element kolejki.
+ * W przypadku gdy kolejka jest pusta, wątek czeka na pojawienie się elementu.
+ */
+TYPE_ CONCAT(QUEUE_PREFIX_, _pop)(QUEUE_TYPE_ *q);
+
+/*
+ * Funkcja dodaje element do kolejki.
+ */
+int CONCAT(QUEUE_PREFIX_, _push)(QUEUE_TYPE_ *q, TYPE_ value);
+
+/*
+ * Funkcja zwalnia wszystkie czekające wątki na kolejce.
+ */
+void CONCAT(QUEUE_PREFIX_, _godie)(QUEUE_TYPE_ *q);
