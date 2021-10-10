@@ -1,5 +1,3 @@
-The actors system written as part of the concurrent programming course. Actors in this system communicate with each other by sending message type and pointers to a location in memory with message. My code scores 100% points. Points received for units tests and code review.
-
 # Duże zadanie zaliczeniowe ze współbieżności w języku C
 ## Wprowadzenie
 Zadanie będzie polegało na zaimplementowaniu pewnej wersji wzorca aktorów. Aktory to mechanizm przetwarzania pozwalający na wielowątkowe wykonywanie zestawu zadań w ramach jednego programu. Aktor to byt, który przyjmuje komunikaty z pewnego zestawu. Przyjęcie komunikatu danego rodzaju wiąże się z wykonaniem pewnego obliczenia imperatywnego, które może mieć efekty uboczne, np. polegające na przekształceniu jakiejś globalnej struktury danych, ale też na utworzeniu nowych aktorów i wysłaniu do jakichś istiejących aktorów komunikatów. Komunikaty wysyłane w tym systemie mają charakter asynchroniczny. W obecnym zadaniu praca aktorów jest wykonywana przez wątki robocze (ang. worker threads) z określonej puli.
